@@ -44,12 +44,12 @@ fn main() {
 
 		let formatted_modified: [String; 2] = ALHPANUMERIC_SPLIT_RE
 			.captures(&format_duration(ago_raw)
-			.to_string()
-			.split_whitespace()
-			.next()
-			.unwrap()
-			.to_string()
-		).map(|x| [x.get(1).unwrap().as_str().to_string(), x.get(2).unwrap().as_str().to_string()]).unwrap();
+				.to_string()
+				.split_whitespace()
+				.next()
+				.unwrap()
+				.to_string()
+			).map(|x| [x.get(1).unwrap().as_str().to_string(), x.get(2).unwrap().as_str().to_string()]).unwrap();
 
 		if path.is_file() {
 			return Some(GitStatus {
@@ -62,14 +62,6 @@ fn main() {
 			})
 		}
 
-		let cherry = std::process::Command::new("git")
-			.args(["cherry", "-v"])
-			.current_dir(&path)
-			.output()
-			.unwrap();
-
-		dbg!(cherry);
-
 		let git_status_output = std::process::Command::new("git")
 			.args(["status", "-u", "--porcelain"])
 			.current_dir(&path)
@@ -78,13 +70,19 @@ fn main() {
 		match git_status_output {
             Ok(o) => {
                 if o.status.success() {
-                    let out = String::from_utf8_lossy(&o.stdout);
+					let unpushed_count = std::process::Command::new("git")
+						.args(["cherry", "-v"])
+						.current_dir(&path)
+						.output()
+						.map(|x| String::from_utf8_lossy(&x.stdout).trim().lines().count())
+						.unwrap_or(0);
 
+                    let out = String::from_utf8_lossy(&o.stdout);
 					let lines = out.trim().split("\n");
 					let untracked_count = lines.clone().filter(|l| l.starts_with("?")).count();
 					let modified_count = lines.filter(|l| l.starts_with("M")).count();
 
-					if untracked_count == 0 && modified_count == 0 {
+					if unpushed_count == 0 && untracked_count == 0 && modified_count == 0 {
 						return Some(GitStatus {
 							emoji: '✅',
 							filename,
@@ -94,27 +92,27 @@ fn main() {
 							msg: String::from("is clean")
 						})
 					} else {
-						let mut message = String::new();
+						let mut msg = Vec::new();
 
-						if untracked_count > 0 {
-							message.push_str(&format!("{} {}", untracked_count, pl("untracked change", untracked_count)));
+						if unpushed_count > 0 {
+							msg.push(format!("{} {}", unpushed_count, pl("unpushed change", unpushed_count)));
 						}
 
-						if untracked_count > 0 && modified_count > 0 {
-							message.push_str(" and ");
+						if untracked_count > 0 {
+							msg.push(format!("{} {}", untracked_count, pl("untracked change", untracked_count)));
 						}
 
 						if modified_count > 0 {
-							message.push_str(&format!("{} {}", modified_count, pl("modification", modified_count)));
+							msg.push(format!("{} {}", modified_count, pl("modification", modified_count)));
 						}
-
+						
 						return Some(GitStatus {
 							emoji: '📂',
 							filename,
 							ago_raw,
 							ago: formatted_modified,
 							colour: Color::Yellow,
-							msg: message
+							msg: msg.join(", "),
 						});
 					}
                 } else {
