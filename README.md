@@ -1,6 +1,8 @@
 # emigrate
 A little tool to make sure you don't lose any progress on projects when wiping your machine.
 
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ma1ted/emigrate/rust.yml)
+
 ## Usage
 ```bash
 $ emigrate <PATH>
