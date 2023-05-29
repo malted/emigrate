@@ -19,7 +19,7 @@ $ emigrate <DIR_PATH>
 ![Tool screenshot](https://github.com/ma1ted/emigrate/assets/59726149/49f3181b-e3b6-4eec-b194-c2caf2fa3d25)
 
 ## Performance
-Approximately 99.75% of the time is spent on `wait4` syscalls waiting for `git` to finish running.
+Approximately 99.85% of the time is spent on `wait4` syscalls waiting for `git` to finish running.
 ```bash
 $ strace -c ./target/release/emigrate /home/malted/code > /dev/null
 % time     seconds  usecs/call     calls    errors syscall
