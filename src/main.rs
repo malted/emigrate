@@ -25,7 +25,7 @@ struct GitStatus {
 }
 
 fn main() {
-	let code_dir = "/home/malted/code";
+	let code_dir = std::env::args().nth(1).unwrap();
 
 	let mut entries: Vec<GitStatus> = std::fs::read_dir(code_dir).unwrap().filter_map(|entry| {
 		let entry = entry.unwrap();
